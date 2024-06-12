@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const candidate = require("../models/candidate");
 const user = require('../models/user');
+const { jwtMiddleWare, generateToken } = require('../jwt');
+
 
 const isAdmin = async (userId) => {
     try {
@@ -13,8 +15,20 @@ const isAdmin = async (userId) => {
     }
 }
 
+// Fetch List Of Candidates
+router.get('/',async(req,res)=>{
+    try{
+        const candidateDetails = await candidate.find();
+        res.status(200).json(candidateDetails);
+
+    }catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+})
+
 // Create a Candidate
-router.post('/', async (req, res) => {
+router.post('/',jwtMiddleWare, async (req, res) => {
     try {
         if (!await isAdmin(req.user.id)) {
             res.status(403).json({ message: "Only Admins Has Access" });
@@ -34,7 +48,7 @@ router.post('/', async (req, res) => {
 
 
 // Update Candidate
-router.put('/:candidateId', async (req, res) => {
+router.put('/:candidateId',jwtMiddleWare, async (req, res) => {
     try {
         if (!isAdmin(req.user.id)) {
             res.status(403).json({ message: "Only Admins Has Access" });
@@ -63,7 +77,7 @@ router.put('/:candidateId', async (req, res) => {
 })
 
 // Delete Candidate
-router.delete('/:candidateId', async (req, res) => {
+router.delete('/:candidateId',jwtMiddleWare, async (req, res) => {
     try {
         if (!isAdmin(req.user.id)) {
             res.status(403).json({ message: "Only Admins Has Access" });
